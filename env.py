@@ -11,118 +11,152 @@ import random as rd
 import time
 
 
-class State:
-    def __init__(self,height=6,width=7):
+class Game:
+    def __init__(self, height, width):
         self.height = height
         self.width = width
-        self.board = np.zeros((self.height,self.width),dtype=int)
-        self.action_possible = list(range(self.width))
-        self.player = 1
-        self.finished = False
-        self.winner = None
-        self.reward = 0
-        self.corresp = {1:'X',-1:'O',0:'-'}
-        
-    def get_actions(self):
-        return self.action_possible
-    
-    def step(self,action):
-#        action un entier
-        assert action in self.action_possible
-        column = self.board[:,action]
-        for index,pawn in reversed(list(enumerate(column))):
+        self.board = np.zeros((height, width), dtype=int)
+        self.player_turn = 1
+        self.state = State(self.board, self.player_turn)
+
+    def reset(self):
+        self.board = np.zeros((self.height, self.width), dtype=int)
+        self.player_turn = 1
+        self.state = State(self.board, self.player_turn)
+        return self.state
+
+    def step(self, action):
+        next_state, reward, done = self.state.take_action(action)
+        self.state = next_state
+        self.player_turn *= -1
+        return next_state, reward, done
+
+    def render(self):
+        return str(self.state)
+
+
+class State:
+    def __init__(self, board, player_turn):
+        self.board = board
+        self.height, self.width = board.shape
+        self.action_possible = self._get_actions()
+        self.player_turn = player_turn
+        self.corresp = {1: 'X', -1: 'O', 0: '-'}
+        self.id = self.__str__()
+
+    def take_action(self, action):
+        # action un entier
+        if action not in self.action_possible:
+            print(action, self.action_possible)
+            raise ValueError(self)
+        # column = self.board[:, action]
+        new_board = np.array(self.board)
+        index = 'ROFL'
+        for index, pawn in reversed(list(enumerate(new_board[:, action]))):
             if not pawn:
-                self.board[index,action] = self.player
-                if index == 0:
-                    self.action_possible.remove(action)
+                new_board[index, action] = self.player_turn
                 break
-        if self.connect4(index,action):
-            self.winner = self.corresp[self.player]
-            self.reward =  self.winner
-            self.finished = True
-            
-        if not self.action_possible:
-            self.reward = 0
-            self.finished = True
-        self.player *=-1
-    
-    
-    def vertical(self,index,action):
-        line = self.board[index,:]
-        motif = ('+'+str(self.player))*4
-        line = "".join(['+'+str(x) for x in line])
+        next_state = State(new_board, -1 * self.player_turn)
+        value = 0
+        done = 0
+        if not len(next_state.action_possible):
+            done = 1
+        elif next_state.connect4(index, action):
+            done = 1
+            value = -1
+        return next_state, value, done
+
+    def connect4(self, index, action):
+        if self._horizontal(action):
+            return True
+        elif self._vertical(index):
+            return True
+        elif self._diag_principale(index, action):
+            return True
+        elif self._diag_reverse(index, action):
+            return True
+        return False
+
+    def _get_actions(self):
+        return np.where(self.board[0] == 0)[0]
+
+    def _vertical(self, index):
+        line = self.board[index, :]
+        # print(line, index, 'lol')
+        motif = ('+' + str(-1*self.player_turn)) * 4
+        line = "".join(['+' + str(x) for x in line])
+        # print('motif ', motif, 'line ', line)
         find = line.find(motif)
         return find != -1
     
-    def horizontal(self,index,action):
-        column = self.board[:,action]
-        motif = ('+'+str(self.player))*4
+    def _horizontal(self, action):
+        column = self.board[:, action]
+        motif = ('+' + str(-1*self.player_turn)) * 4
         column = "".join(['+'+str(x) for x in column])
+        # print('motif ', motif, 'column ', column)
         find = column.find(motif)
         return find != -1
     
-    def diag_principale(self,index,action):
+    def _diag_principale(self, index, action):
         diag = list()
         i = index
         a = action
         while a > 0 and i < self.height-1:
             a -= 1
             i += 1
-        while a<=self.width-1 and i >= 0:
-            diag.append(str(self.board[i,a]))
+        while a <= self.width-1 and i >= 0:
+            diag.append(str(self.board[i, a]))
             a += 1
             i -= 1
-        motif = ('+'+str(self.player))*4
+        motif = ('+' + str(-1*self.player_turn)) * 4
         diag = "".join(['+'+str(x) for x in diag])
         find = diag.find(motif)
         return find != -1 and diag[find-1] != '-'
     
-    def diag_reverse(self,index,action):
+    def _diag_reverse(self, index, action):
         diag = list()
         i = index
         a = action
         while a > 0 and i > 0:
             a -= 1
             i -= 1
-        while a<self.width and i < self.height:
-            diag.append(str(self.board[i,a]))
+        while a < self.width and i < self.height:
+            diag.append(str(self.board[i, a]))
             a += 1
             i += 1
-        motif = ('+'+str(self.player))*4
+        motif = ('+' + str(-1*self.player_turn)) * 4
         diag = "".join(['+'+str(x) for x in diag])
         find = diag.find(motif)
         return find != -1 and diag[find-1] != '-'
-    
-    def connect4(self,index,action):
-        if self.horizontal(index,action):
-            return True
-        elif self.vertical(index,action):
-            return True
-        elif self.diag_principale(index,action):
-            return True
-        elif self.diag_reverse(index,action):
-            return True
-        return False
-                
+
     def __str__(self):
-        return '\n'.join([''.join([self.corresp[y] for y in x ]) for x in self.board.tolist()])
+        return '\n'.join([''.join([self.corresp[y] for y in x]) for x in self.board.tolist()])
     
     def __repr__(self):
         return str(self.board)
     
 
 def play():
-#    random policy to check for bugs
-    jeu = State()
-    while not jeu.finished:
-        action = rd.choice(jeu.action_possible)
-        jeu.step(action)
-        print(jeu)
-        print("*"*50)
-        time.sleep(.05)
-    return jeu.winner,jeu,action
+    # import time
+    done = 0
+    turn = 0
+    env = Game(6, 7)
+    state = env.state
+    # print(env.render())
+    # print('-' * 50)
+    while done == 0:
+        print(env.render())
+        print('-' * 50)
+        turn += 1
+        action = rd.choice(state.action_possible)
+        # time.sleep(1)
+        state, reward, done = env.step(action)
+        # print(reward)
+    print(reward)
+    print(env.render())
+    print(env.player_turn)
+    print('winner is ', env.state.corresp[-1*env.player_turn])
 
-x,y,z=play()
-print(y)
-print(x,'won')
-print('last action' , z)
+
+if __name__ == '__main__':
+    play()
