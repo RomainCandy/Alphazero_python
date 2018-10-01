@@ -51,6 +51,8 @@ class MCTS:
         current_node = self.root
         done = 0
         value = 0
+        best_action = None
+        best_edge = None
         while not current_node.is_leaf():
             best_qu = -np.Inf
             if current_node == self.root:

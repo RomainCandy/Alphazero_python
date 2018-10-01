@@ -7,14 +7,24 @@ class Memory:
         self.memory = []
         self.position = 0
 
-    def push(self, state, player_turn, target_pi, target_v=None):
+    def push(self, *args):
         if len(self.memory) < self.max_len:
             self.memory.append(None)
-        self.memory[self.position] = (state, player_turn, target_pi, target_v)
+        self.memory[self.position] = args
         self.position = (self.position + 1) % self.max_len
+
+    def extend(self, l):
+        for elem in l:
+            self.push(*elem)
 
     def sample(self, batch_size):
         return random.sample(self.memory, batch_size)
 
+    def shuffle(self):
+        random.shuffle(self.memory)
+
     def __len__(self):
         return len(self.memory)
+
+    def __repr__(self):
+        return repr(self.memory)

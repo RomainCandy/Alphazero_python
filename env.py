@@ -8,19 +8,18 @@ Created on Tue Nov 28 08:33:23 2017
 
 import numpy as np
 import random as rd
-import time
 
 
 class Game:
-    def __init__(self, height, width):
+    def __init__(self, length, height):
+        self.length = length
         self.height = height
-        self.width = width
-        self.board = np.zeros((height, width), dtype=int)
+        self.board = np.zeros((length, height), dtype=int)
         self.player_turn = 1
         self.state = State(self.board, self.player_turn)
 
     def reset(self):
-        self.board = np.zeros((self.height, self.width), dtype=int)
+        self.board = np.zeros((self.length, self.height), dtype=int)
         self.player_turn = 1
         self.state = State(self.board, self.player_turn)
         return self.state
@@ -31,14 +30,15 @@ class Game:
         self.player_turn *= -1
         return next_state, reward, done
 
-    def render(self):
-        return str(self.state)
+    def render(self, logger):
+        logger.info(str(self.board))
+        logger.info('-'*50)
 
 
 class State:
     def __init__(self, board, player_turn):
         self.board = board
-        self.height, self.width = board.shape
+        self.length, self.height = board.shape
         self.action_possible = self._get_actions()
         self.player_turn = player_turn
         self.corresp = {1: 'X', -1: 'O', 0: '-'}
@@ -77,6 +77,18 @@ class State:
             return True
         return False
 
+    def to_model(self):
+        board = np.zeros((2, self.length, self.height))
+        board[0] = self.board
+        board[1] = self.player_turn
+        return board
+
+    def get_symmetries(self, pi):
+        board = np.zeros((2, self.length, self.height))
+        board[0] = np.flip(self.board, 1)
+        board[1] = self.player_turn
+        return [(self.to_model(), pi), (board, pi[::-1])]
+
     def _get_actions(self):
         return np.where(self.board[0] == 0)[0]
 
@@ -101,10 +113,10 @@ class State:
         diag = list()
         i = index
         a = action
-        while a > 0 and i < self.height-1:
+        while a > 0 and i < self.length-1:
             a -= 1
             i += 1
-        while a <= self.width-1 and i >= 0:
+        while a <= self.height-1 and i >= 0:
             diag.append(str(self.board[i, a]))
             a += 1
             i -= 1
@@ -120,7 +132,7 @@ class State:
         while a > 0 and i > 0:
             a -= 1
             i -= 1
-        while a < self.width and i < self.height:
+        while a < self.height and i < self.length:
             diag.append(str(self.board[i, a]))
             a += 1
             i += 1
@@ -134,6 +146,10 @@ class State:
     
     def __repr__(self):
         return str(self.board)
+
+    def render(self, logger):
+        logger.info('\n{}'.format(self))
+        # logger.info('-'*50)
     
 
 def play():
@@ -142,10 +158,11 @@ def play():
     turn = 0
     env = Game(6, 7)
     state = env.state
+    reward = None
     # print(env.render())
     # print('-' * 50)
     while done == 0:
-        print(env.render())
+        print(str(env))
         print('-' * 50)
         turn += 1
         action = rd.choice(state.action_possible)
@@ -153,7 +170,7 @@ def play():
         state, reward, done = env.step(action)
         # print(reward)
     print(reward)
-    print(env.render())
+    print(str(env))
     print(env.player_turn)
     print('winner is ', env.state.corresp[-1*env.player_turn])
 

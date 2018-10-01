@@ -1,7 +1,6 @@
 import MCTS
 import numpy as np
 import random
-import torch
 
 
 class Agent:
@@ -14,7 +13,7 @@ class Agent:
         self.mcts = None
         self.root = None
 
-    def act(self, state):
+    def act(self, state, tau):
         if self.mcts is None:
             self.build_mcts(state)
         else:
@@ -23,7 +22,7 @@ class Agent:
         for _ in range(self.num_simulations):
             self.simulate()
         pi, values = self.get_action_value()
-        action, value = self.chose_action(pi, values)
+        action, value = self.chose_action(pi, values, tau)
         next_state, _, _ = state.take_action(action)
         model_value = -1 * self.get_preds(next_state)[0]
         return action, pi, value, model_value
@@ -51,7 +50,7 @@ class Agent:
 
     def get_preds(self, state):
         allowed_moves = state.action_possible
-        probs, value = self.model.predict(torch.from_numpy(state.board))
+        probs, value = self.model.predict(state.to_model())
         mask = np.zeros(probs.shape, dtype=bool)
         mask[allowed_moves] = False
         probs[mask] = -np.Inf
@@ -60,7 +59,7 @@ class Agent:
 
     def get_action_value(self):
         edges = self.mcts.root.edges
-        pi = np.ones(self.action_size, dtype=np.integer)
+        pi = np.zeros(self.action_size, dtype=np.integer)
         values = np.zeros(self.action_size, dtype=np.float)
         for action, edge in edges:
             pi[action] += edge.stats['N']
@@ -68,9 +67,14 @@ class Agent:
         pi = pi / np.sum(pi * 1.0)
         return pi, values
 
-    def chose_action(self, pi, values):
-        best_actions = np.argwhere(pi == np.max(pi))
-        action = random.choice(best_actions)[0]
+    @staticmethod
+    def chose_action(pi, values, tau):
+        if tau:
+            action_idx = np.random.multinomial(1, pi)
+            action = np.where(action_idx == 1)[0][0]
+        else:
+            best_actions = np.argwhere(pi == np.max(pi))
+            action = random.choice(best_actions)[0]
         value = values[action]
         return action, value
 
