@@ -1,4 +1,6 @@
 import logging
+import pickle
+import re
 
 
 class AverageMeter:
@@ -37,3 +39,18 @@ def setup_logger(name, log_file, level=logging.INFO):
         logger.addHandler(handler)
 
     return logger
+
+
+def load_pickle(filename):
+    with open(filename, 'rb') as pfile:
+        obj = pickle.load(pfile)
+    return obj
+
+
+def save_pickle(obj, filename):
+    with open(filename, 'wb') as pfile:
+        pickle.dump(obj, pfile)
+
+
+def extract_digit(s):
+    return re.findall('\d+', s)[-1]

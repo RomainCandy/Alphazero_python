@@ -7,6 +7,7 @@ Created on Tue Nov 28 08:33:23 2017
 """
 
 import numpy as np
+import random as rd
 
 
 class GameTicTacToe:
@@ -57,13 +58,13 @@ class StateTicTacToe:
         done = 0
         if not len(next_state.action_possible):
             done = 1
-        elif next_state.end_game():
+        if next_state.end_game():
             done = 1
             value = -1
         return next_state, value, done
 
-    def _end_game(self):
-        return self._column() or self._line() or self._diag()
+    # def _end_game(self):
+    #     return self._column() or self._line() or self._diag()
 
     def _column(self):
         for i in range(self.length):
@@ -91,14 +92,25 @@ class StateTicTacToe:
         return False
 
     def _diag(self):
-        return  self.board[1, 1] and ((self.board[0, 0] == self.board[1, 1] == self.board[2, 2]) or (
-                self.board[2, 0] == self.board[1, 1] == self.board[0, 2]))
+        return self.board[1, 1] and ((self.board[0, 0] == self.board[1, 1] == self.board[2, 2]) or (
+               self.board[2, 0] == self.board[1, 1] == self.board[0, 2]))
 
     def to_model(self):
         board = np.zeros((2, self.length, self.height))
         board[0] = self.board
         board[1] = self.player_turn
         return board
+
+    def render(self, logger):
+        logger.info('\n{}'.format(self))
+
+    def get_symmetries(self, pi):
+        # think later on make this work (problem with allowed_moves)
+        # board = np.zeros((2, self.length, self.height))
+        # board[0] = np.flip(self.board, 1)
+        # board[1] = self.player_turn
+        # return [(self.to_model(), pi), (board, pi[::-1])]
+        return [(self.to_model(), pi)]
 
     def _get_actions(self):
         zz = np.argwhere(self.board == 0)
@@ -110,7 +122,7 @@ class StateTicTacToe:
     def __repr__(self):
         return str(self.board)
 
-import random as rd
+
 def play():
     # import time
     done = 0

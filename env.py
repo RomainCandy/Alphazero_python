@@ -61,7 +61,7 @@ class State:
         done = 0
         if not len(next_state.action_possible):
             done = 1
-        elif next_state.connect4(index, action):
+        if next_state.connect4(index, action):
             done = 1
             value = -1
         return next_state, value, done
@@ -84,20 +84,21 @@ class State:
         return board
 
     def get_symmetries(self, pi):
-        board = np.zeros((2, self.length, self.height))
-        board[0] = np.flip(self.board, 1)
-        board[1] = self.player_turn
-        return [(self.to_model(), pi), (board, pi[::-1])]
+        # THINK LATER ON HOW TO MAKE THIS WORK (problem with allowed_moves)
+
+        # board = np.zeros((2, self.length, self.height))
+        # board[0] = np.flip(self.board, 1)
+        # board[1] = self.player_turn
+        # return [(self.to_model(), pi), (board, pi[::-1])]
+        return [(self.to_model(), pi)]
 
     def _get_actions(self):
         return np.where(self.board[0] == 0)[0]
 
     def _vertical(self, index):
         line = self.board[index, :]
-        # print(line, index, 'lol')
         motif = ('+' + str(-1*self.player_turn)) * 4
         line = "".join(['+' + str(x) for x in line])
-        # print('motif ', motif, 'line ', line)
         find = line.find(motif)
         return find != -1
     
@@ -105,7 +106,6 @@ class State:
         column = self.board[:, action]
         motif = ('+' + str(-1*self.player_turn)) * 4
         column = "".join(['+'+str(x) for x in column])
-        # print('motif ', motif, 'column ', column)
         find = column.find(motif)
         return find != -1
     
@@ -148,8 +148,9 @@ class State:
         return str(self.board)
 
     def render(self, logger):
-        logger.info('\n{}'.format(self))
-        # logger.info('-'*50)
+        for row in self.board:
+            logger.info(str([self.corresp[y] for y in row]))
+        logger.info('-'*50)
     
 
 def play():

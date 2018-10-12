@@ -1,10 +1,12 @@
-import MCTS
-import numpy as np
 import random
+
+import numpy as np
+
+import MCTS
 
 
 class Agent:
-    def __init__(self, name, num_simulations, action_size, c, model):
+    def __init__(self, name, num_simulations, action_size, c, model, training_loop=10):
         self.name = name
         self.num_simulations = num_simulations
         self.action_size = action_size
@@ -12,6 +14,7 @@ class Agent:
         self.model = model
         self.mcts = None
         self.root = None
+        self.training_loop = training_loop
 
     def act(self, state, tau):
         if self.mcts is None:
@@ -51,7 +54,11 @@ class Agent:
     def get_preds(self, state):
         allowed_moves = state.action_possible
         probs, value = self.model.predict(state.to_model())
-        mask = np.zeros(probs.shape, dtype=bool)
+        # print(allowed_moves, type(allowed_moves), allowed_moves.shape)
+        if not allowed_moves.shape[0]:
+            probs = np.ones_like(probs) / probs.shape[0]
+            return value, probs, allowed_moves
+        mask = np.ones(probs.shape, dtype=bool)
         mask[allowed_moves] = False
         probs[mask] = -np.Inf
         probs = np.exp(probs) / np.sum(np.exp(probs), axis=0)
@@ -64,6 +71,8 @@ class Agent:
         for action, edge in edges:
             pi[action] += edge.stats['N']
             values[action] = edge.stats['Q']
+        if np.sum(pi*1.0) == 0:
+            return pi, values
         pi = pi / np.sum(pi * 1.0)
         return pi, values
 
@@ -71,6 +80,7 @@ class Agent:
     def chose_action(pi, values, tau):
         if tau:
             action_idx = np.random.multinomial(1, pi)
+            # print(action_idx, 'lol', pi)
             action = np.where(action_idx == 1)[0][0]
         else:
             best_actions = np.argwhere(pi == np.max(pi))
@@ -84,3 +94,40 @@ class Agent:
 
     def change_root(self, state):
         self.mcts.root = self.mcts.tree[state.id]
+
+    def train(self, memory, batch_size=256):
+        for _ in range(self.training_loop):
+            batch = memory.sample(min(batch_size, len(memory)))
+            self.model.train(batch)
+
+
+class User:
+    """
+    A human player
+    """
+    def __init__(self, name, action_size):
+        self.name = name
+        self.action_size = action_size
+        self.mcts = None
+
+    def act(self, state, tau):
+        assert tau == 0
+        action = int(input('your move: '))
+        while action not in state.action_possible:
+            print('possible actions are {}'.format(state.action_possible))
+            action = int(input('your move: '))
+        pi = np.zeros(self.action_size)
+        pi[action] = 1
+        return action, pi, None, None
+
+    @staticmethod
+    def chose_action(pi, values, tau):
+        if tau:
+            action_idx = np.random.multinomial(1, pi)
+            # print(action_idx, 'lol', pi)
+            action = np.where(action_idx == 1)[0][0]
+        else:
+            best_actions = np.argwhere(pi == np.max(pi))
+            action = random.choice(best_actions)[0]
+        value = values[action]
+        return action, value

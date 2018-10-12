@@ -23,6 +23,9 @@ class Memory:
     def shuffle(self):
         random.shuffle(self.memory)
 
+    def __getitem__(self, index):
+        return self.memory[index]
+
     def __len__(self):
         return len(self.memory)
 
