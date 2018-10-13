@@ -1,5 +1,4 @@
 import numpy as np
-import random as rd
 import sys
 sys.path.append('..')
 from GenericGame import GenericState

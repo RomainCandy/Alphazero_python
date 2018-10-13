@@ -203,45 +203,46 @@ class ResNet(nn.Module):
 
 
 class WrapperNet:
-    def __init__(self, game):
+    def __init__(self, game, logger):
         self.net = ResNet(ResidualBlock, game)
         self.height = game.height
         self.length = game.length
         self.action_size = len(game.state.action_possible)
+        self.logger = logger
 
-    def train2(self, memory, batch_size, epochs=10):
-        optimizer = optim.Adam(self.net.parameters(), weight_decay=0.4)
-        criterion = Loss()
-        self.net.train()
-        losses = AverageMeter()
-        num_batch = len(memory) // batch_size
-        lg.logger_model.info('Loop : {}'.format(num_batch))
-        for _ in range(epochs):
-            for k in range(num_batch):
-                optimizer.zero_grad()
-                # examples = memory.sample(min(len(memory), batch_size))
-                examples = memory[k*batch_size:((k+1) * batch_size)]
-                state, pi_target, v_target = list(zip(*examples))
-                board = torch.cat([torch.from_numpy(x) for x in state]).view(-1, 2, self.height, self.length)
-                pi_target = torch.Tensor(pi_target)
-                v_target = torch.Tensor(v_target)
-                out_pi, out_v = self.net(board)
-                # out_pi = F.log_softmax(out_pi, 1)
-                loss = criterion(out_pi, out_v, pi_target, v_target)
-                losses.update(loss.item(), out_pi.size(0))
-                loss.backward()
-                optimizer.step()
-        lg.logger_model.info('Loss avg : {:.4f}'.format(losses.avg))
-        lg.logger_model.info('-'*100)
+    # def train2(self, memory, batch_size, epochs=10):
+    #     optimizer = optim.Adam(self.net.parameters(), weight_decay=0.4)
+    #     criterion = Loss()
+    #     self.net.train()
+    #     losses = AverageMeter()
+    #     num_batch = len(memory) // batch_size
+    #     lg.logger_model.info('Loop : {}'.format(num_batch))
+    #     for _ in range(epochs):
+    #         for k in range(num_batch):
+    #             optimizer.zero_grad()
+    #             # examples = memory.sample(min(len(memory), batch_size))
+    #             examples = memory[k*batch_size:((k+1) * batch_size)]
+    #             state, pi_target, v_target = list(zip(*examples))
+    #             board = torch.cat([torch.from_numpy(x) for x in state]).view(-1, 2, self.height, self.length)
+    #             pi_target = torch.Tensor(pi_target)
+    #             v_target = torch.Tensor(v_target)
+    #             out_pi, out_v = self.net(board)
+    #             # out_pi = F.log_softmax(out_pi, 1)
+    #             loss = criterion(out_pi, out_v, pi_target, v_target)
+    #             losses.update(loss.item(), out_pi.size(0))
+    #             loss.backward()
+    #             optimizer.step()
+    #     lg.logger_model.info('Loss avg : {:.4f}'.format(losses.avg))
+    #     lg.logger_model.info('-'*100)
 
     def train(self, memory, batch_size=32, epochs=2):
         # optimizer = optim.Adam(self.net.parameters(), weight_decay=0.4)
         optimizer = optim.SGD(self.net.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.4)
-        criterion = Loss()
+        criterion = Loss(self.logger)
         self.net.train()
         losses = AverageMeter()
         num_batch = len(memory) // batch_size
-        lg.logger_model.info('Loop : {}'.format(num_batch))
+        self.logger.info('Loop : {}'.format(num_batch))
         for _ in range(epochs):
             for k in range(num_batch):
                 optimizer.zero_grad()
@@ -254,8 +255,8 @@ class WrapperNet:
                 losses.update(loss.item(), out_pi.size(0))
                 loss.backward()
                 optimizer.step()
-            lg.logger_model.info('Loss avg : {:.4f}'.format(losses.avg))
-        lg.logger_model.info('-'*100)
+            self.logger.info('Loss avg : {:.4f}'.format(losses.avg))
+        self.logger.info('-'*100)
 
     def predict(self, state):
         self.net.eval()
@@ -277,8 +278,9 @@ class WrapperNet:
 
 
 class Loss(nn.Module):
-    def __init__(self):
+    def __init__(self, logger):
         super(Loss, self).__init__()
+        self.logger = logger
 
     def forward(self, m_proba, v, target_pi, target_v):
         zero = torch.zeros_like(m_proba)
@@ -288,5 +290,5 @@ class Loss(nn.Module):
         m_proba = F.log_softmax(m_proba, 1)
         l2 = -torch.sum(target_pi*m_proba, 1).mean()
         l1 = F.mse_loss(v, target_v.view(-1, 1))
-        lg.logger_model.info('policy loss: {:.4f}\t\tvalue loss: {:.4f}'.format(l2.item(), l1.item()))
+        self.logger.info('policy loss: {:.4f}\t\tvalue loss: {:.4f}'.format(l2.item(), l1.item()))
         return l1 + l2

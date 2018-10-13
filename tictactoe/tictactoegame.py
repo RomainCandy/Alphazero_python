@@ -106,11 +106,14 @@ class StateTicTacToe:
 
     def get_symmetries(self, pi):
         # think later on make this work (problem with allowed_moves)
-        # board = np.zeros((2, self.length, self.height))
-        # board[0] = np.flip(self.board, 1)
-        # board[1] = self.player_turn
-        # return [(self.to_model(), pi), (board, pi[::-1])]
-        return [(self.to_model(), pi)]
+        board = np.zeros((2, self.length, self.height))
+        board[0] = np.flip(self.board, 0)
+        board[1] = self.player_turn
+        pi2 = pi.copy()
+        for i in range(len(pi) // 2):
+            pi2[i], pi2[-(i + 1)] = pi2[-(i + 1)], pi2[i]
+        return [(self.to_model(), pi), (board, -1 * pi2)]
+        # return [(self.to_model(), pi)]
 
     def _get_actions(self):
         zz = np.argwhere(self.board == 0)

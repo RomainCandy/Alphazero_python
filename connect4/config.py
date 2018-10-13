@@ -12,7 +12,7 @@ config['DEFAULT'] = {'length': 7,
                      'folder': 'connect4/',
                      'memory_file': 'memory/mem.p',
                      'saved_model': 'checkpoint',
-                     'size_memory': 30000}
+                     'memory_size': 30000}
 
 with open('config_connect4.ini', 'w') as cf:
     config.write(cf)

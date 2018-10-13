@@ -5,3 +5,7 @@ memory/*
 logs/*
 logsV2/
 checkpointV2/
+*/memory/*
+*/logs/*
+*/checkpoint/*
+not_important/
