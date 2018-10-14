@@ -22,8 +22,6 @@ from gomoku.train_gomuku import num_game_tournament, turn_until_greedy, memory_s
 
 def train():
     try:
-        # with open('memory/mem.p', 'rb') as pfile:
-        #     memory = pickle.load(pfile)
         memory = load_pickle(os.path.join(FOLDER, memory_file))
     except (EOFError, FileNotFoundError):
         memory = Memory(memory_size)

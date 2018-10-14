@@ -3,14 +3,15 @@ import random
 
 def alpha_beta(state, alpha, beta, curr_depth, max_depth, memo):
     if state.is_terminal():
-        memo[str(state)] = 123456 - curr_depth
-        return 123456 - curr_depth
+        reward = -1000
+        memo[str(state)] = reward + curr_depth
+        return reward + curr_depth
     elif curr_depth == max_depth:
         memo[str(state)] = state.evaluate()
         return state.evaluate()
     else:
         best = float('-infinity')
-        for child in state.next_state():
+        for action, child in state.next_state():
             v = -1 * alpha_beta(child, -1 * beta, -1 * alpha, curr_depth + 1, max_depth, memo)
             if v > best:
                 best = v
@@ -89,13 +90,14 @@ class SimpleState:
         return str(self.board)
 
 
-env = SimpleState([], 1)
-# env.find_best()
-for _ in range(15):
-    act = env.chose()
-    print(len(env.memo))
-    env, _ = env.take_action(act)
-    print(env, env.evaluate(), len(env.memo))
-    if env.is_terminal():
-        print(-1 * env.player_turn, 'WIN')
-        break
+if __name__ == '__main__':
+    env = SimpleState([], 1)
+    # env.find_best()
+    for _ in range(15):
+        act = env.chose()
+        print(len(env.memo))
+        env, _ = env.take_action(act)
+        print(env, env.evaluate(), len(env.memo))
+        if env.is_terminal():
+            print(-1 * env.player_turn, 'WIN')
+            break

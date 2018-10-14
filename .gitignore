@@ -9,3 +9,5 @@ checkpointV2/
 */logs/*
 */checkpoint/*
 not_important/
+*.log
+*test*py

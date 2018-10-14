@@ -69,14 +69,14 @@ def play_game(player1, player2, env, nb_games, memory, turns_until_greedy, logge
             scores['drawn'] += 1
             logger.info('Draw!')
         elif value == 1:
-            logger.info('WIN:  {}'.format(players[state.player_turn]['name']))
+            logger.info('WIN:  {} in {} turns'.format(players[state.player_turn]['name'], turn))
             scores[players[state.player_turn]['name']] += 1
             if state.player_turn == 1:
                 sp['X'] += 1
             else:
                 sp['O'] += 1
         elif value == -1:
-            logger.info('WIN: {}'.format(players[-state.player_turn]['name']))
+            logger.info('WIN: {} in {} turns'.format(players[-state.player_turn]['name'], turn))
             scores[players[-state.player_turn]['name']] += 1
             if state.player_turn == 1:
                 sp['O'] += 1

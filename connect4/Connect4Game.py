@@ -64,6 +64,19 @@ class StateConnect4(GenericState):
             value = -1
         return next_state, value, done
 
+    def next_state(self):
+        for action in self.action_possible:
+            yield action, self.take_action(action)[0]
+
+    def evaluate(self):
+        weight = np.array([0.1, 0.15, 0.2, 0.3, 0.2, 0.15, 0.1])
+        zz = self.board.flatten()
+        zz[zz != self.player_turn] = 0
+        zz = zz.reshape(self.length, self.height)
+        zz = np.abs(np.sum(zz, 0))
+        # print("zzzzzzzzzzz", zz)
+        return (weight * zz).sum()
+
     def connect4(self, index, action):
         if self._horizontal(action):
             return True
@@ -80,6 +93,15 @@ class StateConnect4(GenericState):
         board[0] = self.board
         board[1] = self.player_turn
         return board
+
+    def is_terminal(self):
+        for i in range(self.length):
+            for j in range(self.height):
+                if self.board[i, j] and self.connect4(i, j):
+                    return True
+        if not len(self.action_possible):
+            return True
+        return False
 
     def get_symmetries(self, pi):
         # THINK LATER ON HOW TO MAKE THIS WORK (problem with allowed_moves)

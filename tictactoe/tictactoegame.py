@@ -33,6 +33,9 @@ class GameTicTacToe:
     def render(self):
         return str(self.state)
 
+    def __str__(self):
+        return str(self.state)
+
 
 class StateTicTacToe:
     def __init__(self, board, player_turn):
@@ -47,7 +50,7 @@ class StateTicTacToe:
     def take_action(self, action):
         # action un entier
         if action not in self.action_possible:
-            raise ValueError(self)
+            raise ValueError(self, action)
         # column = self.board[:, action]
         new_board = np.array(self.board)
         i = action % 3
@@ -90,6 +93,23 @@ class StateTicTacToe:
         elif self.board[2, 0] and (self.board[2, 0] == self.board[1, 1] == self.board[0, 2]):
             return True
         return False
+
+    def next_state(self):
+        for action in self.action_possible:
+            yield action, self.take_action(action)[0]
+
+    def is_terminal(self, action=None):
+        if self.end_game():
+            self.reward = -1000
+            return True
+        if not len(self.action_possible):
+            self.reward = 0.01
+            return True
+        self.reward = 0
+        return False
+
+    def evaluate(self):
+        return 0
 
     def _diag(self):
         return self.board[1, 1] and ((self.board[0, 0] == self.board[1, 1] == self.board[2, 2]) or (
