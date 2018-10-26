@@ -1,3 +1,4 @@
 memory/*
 logs/*
 checkpoint/*
+old_version/

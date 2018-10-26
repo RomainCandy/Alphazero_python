@@ -61,13 +61,13 @@ class StateTicTacToe:
         done = 0
         if not len(next_state.action_possible):
             done = 1
-        if next_state.end_game():
+        if next_state.is_lost():
             done = 1
             value = -1
         return next_state, value, done
 
-    def _end_game(self):
-        return self._column() or self._line() or self._diag()
+    # def _end_game(self):
+    #     return self._column() or self._line() or self._diag()
 
     def _column(self):
         for i in range(self.length):
@@ -75,7 +75,7 @@ class StateTicTacToe:
                 return True
         return False
 
-    def end_game(self):
+    def is_lost(self):
         if self.board[0, 0] and (self.board[0, 0] == self.board[0, 1] == self.board[0, 2]):
             return True
         elif self.board[0, 1] and (self.board[0, 1] == self.board[1, 1] == self.board[2, 1]):
@@ -98,14 +98,14 @@ class StateTicTacToe:
         for action in self.action_possible:
             yield action, self.take_action(action)[0]
 
-    def is_terminal(self, action=None):
-        if self.end_game():
-            self.reward = -1000
+    def is_draw(self):
+        return not len(self.action_possible)
+
+    def is_terminal(self):
+        if self.is_lost():
             return True
         if not len(self.action_possible):
-            self.reward = 0.01
             return True
-        self.reward = 0
         return False
 
     def evaluate(self):
@@ -140,7 +140,7 @@ class StateTicTacToe:
         return np.array([x + 3 * y for x, y in zz])
 
     def __str__(self):
-        return '\n'.join([''.join([self.corresp[y] for y in x]) for x in self.board.tolist()])
+        return '\n' + '\n'.join([''.join([self.corresp[y] for y in x]) for x in self.board.tolist()])
 
     def __repr__(self):
         return str(self.board)

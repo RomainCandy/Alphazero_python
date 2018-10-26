@@ -1,14 +1,21 @@
-from Agent import Agent
-from tournament import play_game
-from models import WrapperNet
-from Memory import Memory
 import os
+
+import connect4.loggers as lg
+from Agent import Agent
+from Memory import Memory
+from connect4 import FOLDER, memory_file, saved_model, length, height, mcts_sim, num_self_play
+from connect4 import num_game_tournament, turn_until_greedy, memory_size, threshold
+from connect4.Connect4Game import Connect4Game as Game
+from connect4.Connect4Game import StateConnect4 as State
+from models import WrapperNet
+from tournament import play_game
 from utils import load_pickle, save_pickle, extract_digit
-from gomoku.gomokuGame import StateGomoku as State
-from gomoku.gomokuGame import GomokuGame as Game
-import gomoku.loggers as lg
-from gomoku.train_gomuku import FOLDER, memory_file, saved_model, length, height, mcts_sim, num_self_play
-from gomoku.train_gomuku import num_game_tournament, turn_until_greedy, memory_size, threshold
+
+# from gomoku import FOLDER, memory_file, saved_model, length, height, mcts_sim, num_self_play
+# from gomoku import num_game_tournament, turn_until_greedy, memory_size, threshold
+# from gomoku.gomokuGame import GomokuGame as Game
+# from gomoku.gomokuGame import StateGomoku as State
+
 
 # from tictactoe.tictactoegame import StateTicTacToe as State
 # from tictactoe.tictactoegame import GameTicTacToe as Game

@@ -2,6 +2,8 @@ from .minimax import alpha_beta
 import random
 from collections import OrderedDict
 
+random.seed(45)
+
 
 class MinMaxAgent:
     def __init__(self, name, depth):
@@ -43,6 +45,5 @@ class MinMaxAgent:
                 best_action = [action]
                 reward = nreward
             pi.append(nreward)
-        # print(best_action)
         # raise ValueError
         return random.choice(best_action), pi, reward, reward

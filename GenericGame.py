@@ -48,6 +48,20 @@ class GenericState:
         # return [(self.to_model(), pi), (board, pi[::-1])]
         raise NotImplementedError
 
+    def is_terminal(self, action):
+        """
+        For the minmaxAgent to know if it's a terminal state
+        Returns:
+            True if the game is over false otherwise
+        """
+
+    def evaluate(self):
+        """
+        a function to evaluate the state if None just return 0
+        Returns:
+            float: evaluate the state
+        """
+
     def _get_actions(self):
         """
 

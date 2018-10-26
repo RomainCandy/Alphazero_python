@@ -1,10 +1,7 @@
 import numpy as np
 import sys
-import random as rd
 sys.path.append('..')
 from GenericGame import GenericState
-from Agent import Agent, User
-from tournament import friendly_game
 
 
 class GomokuGame:
@@ -81,6 +78,22 @@ class StateGomoku(GenericState):
         elif self._diag_reverse(i, j):
             return True
         return False
+
+    def is_terminal(self):
+        for i in range(self.length):
+            for j in range(self.height):
+                if self.board[i, j] and self.end_game(i, j):
+                    return True
+        if not len(self.action_possible):
+            return True
+        return False
+
+    def next_state(self):
+        for action in self.action_possible:
+            yield action, self.take_action(action)[0]
+
+    def evaluate(self):
+        return 0.1
 
     def _vertical(self, i):
         line = self.board[i, :]

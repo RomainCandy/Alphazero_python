@@ -203,12 +203,16 @@ class ResNet(nn.Module):
 
 
 class WrapperNet:
-    def __init__(self, game, logger):
+    def __init__(self, game, logger, filename=None):
+        self.game = game
+        self.filename = filename
         self.net = ResNet(ResidualBlock, game)
         self.height = game.height
         self.length = game.length
         self.action_size = len(game.state.action_possible)
         self.logger = logger
+        if filename is not None:
+            self.load_checkpoint('.', filename)
 
     # def train2(self, memory, batch_size, epochs=10):
     #     optimizer = optim.Adam(self.net.parameters(), weight_decay=0.4)
@@ -276,6 +280,9 @@ class WrapperNet:
         checkpoint = torch.load(filepath)
         self.net.load_state_dict(checkpoint['state_dict'])
 
+    def __reduce__(self):
+        return self.__class__, (self.game, self.length, self.filename)
+
 
 class Loss(nn.Module):
     def __init__(self, logger):
@@ -283,10 +290,10 @@ class Loss(nn.Module):
         self.logger = logger
 
     def forward(self, m_proba, v, target_pi, target_v):
-        zero = torch.zeros_like(m_proba)
-        where = torch.eq(target_pi, zero)
-        neg = -100.0 * where.float()
-        m_proba = torch.where(where, neg, m_proba)
+        # zero = torch.zeros_like(m_proba)
+        # where = torch.eq(target_pi, zero)
+        # neg = -100.0 * where.float()
+        # m_proba = torch.where(where, neg, m_proba)
         m_proba = F.log_softmax(m_proba, 1)
         l2 = -torch.sum(target_pi*m_proba, 1).mean()
         l1 = F.mse_loss(v, target_v.view(-1, 1))

@@ -15,6 +15,7 @@ class Agent:
         self.mcts = None
         self.root = None
         self.training_loop = training_loop
+        self.memo_predict = dict()
 
     def act(self, state, tau):
         if self.mcts is None:
@@ -53,8 +54,12 @@ class Agent:
 
     def get_preds(self, state):
         allowed_moves = state.action_possible
-        probs, value = self.model.predict(state.to_model())
-        # print(allowed_moves, type(allowed_moves), allowed_moves.shape)
+        if str(state.to_model()) in self.memo_predict:
+            probs, value = self.memo_predict[str(state.to_model())]
+        else:
+            probs, value = self.model.predict(state.to_model())
+            self.memo_predict[str(state.to_model())] = probs, value
+            # print(allowed_moves, type(allowed_moves), allowed_moves.shape)
         if not allowed_moves.shape[0]:
             probs = np.ones_like(probs) / probs.shape[0]
             return value, probs, allowed_moves

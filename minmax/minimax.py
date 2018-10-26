@@ -1,14 +1,27 @@
 import random
 
 
-def alpha_beta(state, alpha, beta, curr_depth, max_depth, memo):
-    if state.is_terminal():
+def alpha_beta(state, alpha, beta, curr_depth, max_depth, memo, action=None):
+    if state.is_lost(action):
         reward = -1000
         memo[str(state)] = reward + curr_depth
         return reward + curr_depth
+
+    if state.is_draw():
+        memo[str(state)] = 0
+        return 0
+    # if state.is_terminal(action):
+    #     if state.end_game():
+    #         reward = -1000
+    #         memo[str(state)] = reward + curr_depth
+    #         return reward + curr_depth
+    #     return 0
+
     elif curr_depth == max_depth:
         memo[str(state)] = state.evaluate()
         return state.evaluate()
+    elif str(state) in memo:
+        return memo[str(state)]
     else:
         best = float('-infinity')
         for action, child in state.next_state():

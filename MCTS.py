@@ -57,7 +57,7 @@ class MCTS:
             best_qu = -np.Inf
             if current_node == self.root:
                 epsilon = 0.25
-                nu = np.random.dirichlet([0.03] * len(current_node.edges))
+                nu = np.random.dirichlet([0.3] * len(current_node.edges))
             else:
                 epsilon = 0
                 nu = np.zeros(len(current_node.edges))

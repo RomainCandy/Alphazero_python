@@ -41,6 +41,8 @@ class StateConnect4(GenericState):
         # self.player_turn = player_turn
         # self.corresp = {1: 'X', -1: 'O', 0: '-'}
         # self.id = self.__str__()
+        self.weight = np.array([0.1, 0.15, 0.2, 0.3, 0.2, 0.15, 0.1])
+        # self.weight = np.zeros(7)
 
     def take_action(self, action):
         # action un entier
@@ -65,17 +67,19 @@ class StateConnect4(GenericState):
         return next_state, value, done
 
     def next_state(self):
-        for action in self.action_possible:
+        # for action in self.action_possible:
+        for action in sorted(self.action_possible, key=lambda x: self.weight[x], reverse=True):
             yield action, self.take_action(action)[0]
 
     def evaluate(self):
-        weight = np.array([0.1, 0.15, 0.2, 0.3, 0.2, 0.15, 0.1])
-        zz = self.board.flatten()
-        zz[zz != self.player_turn] = 0
-        zz = zz.reshape(self.length, self.height)
-        zz = np.abs(np.sum(zz, 0))
+
+        # zz = self.board.flatten()
+        # zz[zz != self.player_turn] = 0
+        # zz = zz.reshape(self.length, self.height)
+        zz = self.player_turn * np.sum(self.board, 0)
         # print("zzzzzzzzzzz", zz)
-        return (weight * zz).sum()
+        return (self.weight * zz).sum()
+        # return 0
 
     def connect4(self, index, action):
         if self._horizontal(action):
@@ -94,13 +98,31 @@ class StateConnect4(GenericState):
         board[1] = self.player_turn
         return board
 
-    def is_terminal(self):
-        for i in range(self.length):
-            for j in range(self.height):
-                if self.board[i, j] and self.connect4(i, j):
-                    return True
-        if not len(self.action_possible):
-            return True
+    def is_lost(self, action=None):
+        if action is None:
+            for i in range(self.length):
+                for j in range(self.height):
+                    if self.board[i, j] != 0 and self.connect4(i, j):
+                        return True
+        else:
+            index = np.max(np.argwhere(self.board[:, action] != 0))
+            return self.connect4(index, action) or not len(self.action_possible)
+        return False
+
+    def is_draw(self):
+        return not len(self.action_possible)
+
+    def is_terminal(self, action):
+        if action is None:
+            for i in range(self.length):
+                for j in range(self.height):
+                    if self.board[i, j] == -1 * self.player_turn and self.connect4(i, j):
+                        return True
+            if not len(self.action_possible):
+                return True
+        else:
+            index = np.max(np.argwhere(self.board[:, action] != 0))
+            return self.connect4(index, action) or not len(self.action_possible)
         return False
 
     def get_symmetries(self, pi):
