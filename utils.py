@@ -53,4 +53,4 @@ def save_pickle(obj, filename):
 
 
 def extract_digit(s):
-    return re.findall('\d+', s)[-1]
+    return int(re.findall('\d+', s)[-1])

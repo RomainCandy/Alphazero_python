@@ -23,7 +23,7 @@ class Agent:
         else:
             self.change_root(state)
 
-        for _ in range(self.num_simulations):
+        for ii in range(self.num_simulations):
             self.simulate()
         pi, values = self.get_action_value()
         action, value = self.chose_action(pi, values, tau)

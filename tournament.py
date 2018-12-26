@@ -54,11 +54,11 @@ def play_game(player1, player2, env, nb_games, memory, turns_until_greedy, logge
         state = env.reset()
         mem = []
         if idx_game % 2:
-            logger.info('{} play as X'.format(player1.name))
-            logger.info('{} play as O'.format(player2.name))
+            logger.info('{} plays as X'.format(player1.name))
+            logger.info('{} plays as O'.format(player2.name))
         else:
-            logger.info('{} play as X'.format(player2.name))
-            logger.info('{} play as O'.format(player1.name))
+            logger.info('{} plays as X'.format(player2.name))
+            logger.info('{} plays as O'.format(player1.name))
         logger.info('-'*50)
         env.state.render(logger)
         while not done:
@@ -158,15 +158,15 @@ def _play_one_game(player1, player2, env, memory, turns_until_greedy, idx_game=0
     mem = []
     # print(players[1]['name'], 'predict ', players[1]['agent'].model.predict(env.state.to_model())[1])
     if idx_game % 2:
-        logs.append('{} play as X'.format(player1.name))
-        logs.append('{} play as O'.format(player2.name))
-        # logger.info('{} play as X'.format(player1.name))
-        # logger.info('{} play as O'.format(player2.name))
+        logs.append('{} plays as X'.format(player1.name))
+        logs.append('{} plays as O'.format(player2.name))
+        # logger.info('{} plays as X'.format(player1.name))
+        # logger.info('{} plays as O'.format(player2.name))
     else:
-        logs.append('{} play as X'.format(player2.name))
-        logs.append('{} play as O'.format(player1.name))
-        # logger.info('{} play as X'.format(player2.name))
-        # logger.info('{} play as O'.format(player1.name))
+        logs.append('{} plays as X'.format(player2.name))
+        logs.append('{} plays as O'.format(player1.name))
+        # logger.info('{} plays as X'.format(player2.name))
+        # logger.info('{} plays as O'.format(player1.name))
     logs.append('-' * 50)
     # logger.info('-' * 50)
     logs.append(str(env))

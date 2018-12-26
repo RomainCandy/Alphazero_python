@@ -146,7 +146,8 @@ class ResNet(nn.Module):
         self.game = game
         self.height = game.height
         self.length = game.length
-        self.action_size = len(game.state.action_possible)
+        # self.action_size = len(game.state.action_possible)
+        self.action_size = game.action_size
 
         self.in_channels = 256
         self.preprocessing = nn.Sequential(

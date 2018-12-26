@@ -8,6 +8,7 @@ class Connect4Game:
     def __init__(self, length, height):
         self.length = length
         self.height = height
+        self.action_size = height
         self.board = np.zeros((length, height), dtype=int)
         self.player_turn = 1
         self.state = StateConnect4(self.board, self.player_turn)
@@ -107,6 +108,9 @@ class StateConnect4(GenericState):
         else:
             index = np.max(np.argwhere(self.board[:, action] != 0))
             return self.connect4(index, action) or not len(self.action_possible)
+        return False
+
+    def is_win(self, action=None):
         return False
 
     def is_draw(self):

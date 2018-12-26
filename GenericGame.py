@@ -54,6 +54,7 @@ class GenericState:
         Returns:
             True if the game is over false otherwise
         """
+        raise NotImplementedError
 
     def evaluate(self):
         """
@@ -61,6 +62,7 @@ class GenericState:
         Returns:
             float: evaluate the state
         """
+        raise NotImplementedError
 
     def _get_actions(self):
         """

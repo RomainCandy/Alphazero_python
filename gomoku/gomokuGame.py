@@ -11,6 +11,7 @@ class GomokuGame:
         self.board = np.zeros((length, height), dtype=int)
         self.player_turn = 1
         self.state = StateGomoku(self.board, self.player_turn)
+        self.action_size = length * height
 
     def reset(self):
         self.board = np.zeros((self.length, self.height), dtype=int)

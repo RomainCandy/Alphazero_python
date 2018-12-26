@@ -2,6 +2,10 @@ import random
 
 
 def alpha_beta(state, alpha, beta, curr_depth, max_depth, memo, action=None):
+    if state.is_win(action):
+        reward = 1000
+        memo[str(state)] = reward + curr_depth
+        return reward + curr_depth
     if state.is_lost(action):
         reward = -1000
         memo[str(state)] = reward + curr_depth

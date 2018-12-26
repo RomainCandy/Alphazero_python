@@ -78,6 +78,11 @@ class MCTS:
                     best_edge = edge
 
             _new_state, value, done = current_node.state.take_action(best_action)
+            if current_node == best_edge.state_out:
+                import pdb
+                pdb.set_trace()
+                # parents.append(best_edge)
+                # return current_node, value, done, parents
             current_node = best_edge.state_out
             parents.append(best_edge)
 

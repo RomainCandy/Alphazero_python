@@ -18,7 +18,7 @@ class Memory:
             self.push(*elem)
 
     def sample(self, batch_size):
-        return random.sample(self.memory, batch_size)
+        return random.sample(self.memory, min(batch_size, len(self.memory)))
 
     def shuffle(self):
         random.shuffle(self.memory)
