@@ -39,7 +39,12 @@ class Agent:
     def evaluate_leaf(self, leaf_node, value, done, parent):
         if not done:
             value, probs, allowed_moves = self.get_preds(leaf_node.state)
-            probs = probs[allowed_moves]
+            try:
+                probs = probs[allowed_moves]
+            except IndexError as err:
+                import pdb
+                pdb.set_trace()
+                raise IndexError(err)
             for idx, move in enumerate(allowed_moves):
                 new_state, _, _ = leaf_node.state.take_action(move)
                 if new_state.id in self.mcts.tree:
@@ -98,7 +103,12 @@ class Agent:
         self.mcts = MCTS.MCTS(self.root, self.c)
 
     def change_root(self, state):
-        self.mcts.root = self.mcts.tree[state.id]
+        try:
+            self.mcts.root = self.mcts.tree[state.id]
+        except KeyError as err:
+            import pdb
+            pdb.set_trace()
+            raise KeyError(err)
 
     def train(self, memory, batch_size=256):
         for _ in range(self.training_loop):

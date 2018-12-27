@@ -300,3 +300,77 @@ class Loss(nn.Module):
         l1 = F.mse_loss(v, target_v.view(-1, 1))
         self.logger.info('policy loss: {:.4f}\t\tvalue loss: {:.4f}'.format(l2.item(), l1.item()))
         return l1 + l2
+
+
+class Dummy(nn.Module):
+    def __init__(self, game):
+        super(Dummy, self).__init__()
+        self.game = game
+        self.height = game.height
+        self.length = game.length
+        self.action_size = game.action_size
+        self.policy = nn.Linear(self.length * self.height * 2, self.action_size)
+        self.value = nn.Linear(self.length * self.height * 2, 1)
+
+    def forward(self, board):
+        board = board.view(-1, 2 * self.height* self.length).float()
+        out_pol = self.policy(board)
+        out_val = self.value(board)
+        return out_pol, F.tanh(out_val)
+
+
+class WrapperNetDummy:
+    def __init__(self, game, logger, filename=None):
+        self.game = game
+        self.filename = filename
+        self.net = Dummy(game)
+        self.height = game.height
+        self.length = game.length
+        self.action_size = len(game.state.action_possible)
+        self.logger = logger
+        if filename is not None:
+            self.load_checkpoint('.', filename)
+
+    def train(self, memory, batch_size=32, epochs=2):
+        # optimizer = optim.Adam(self.net.parameters(), weight_decay=0.4)
+        optimizer = optim.SGD(self.net.parameters(), lr=0.0001, momentum=0.9, weight_decay=0.4)
+        criterion = Loss(self.logger)
+        self.net.train()
+        losses = AverageMeter()
+        num_batch = len(memory) // batch_size
+        self.logger.info('Loop : {}'.format(num_batch))
+        for _ in range(epochs):
+            for k in range(num_batch):
+                optimizer.zero_grad()
+                state, pi_target, v_target = list(zip(*memory))
+                board = torch.cat([torch.from_numpy(x) for x in state]).view(-1, 2, self.height, self.length)
+                pi_target = torch.Tensor(pi_target)
+                v_target = torch.Tensor(v_target)
+                out_pi, out_v = self.net(board)
+                loss = criterion(out_pi, out_v, pi_target, v_target)
+                losses.update(loss.item(), out_pi.size(0))
+                loss.backward()
+                optimizer.step()
+            self.logger.info('Loss avg : {:.4f}'.format(losses.avg))
+        self.logger.info('-'*100)
+
+    def predict(self, state):
+        self.net.eval()
+        board = torch.from_numpy(state).float()
+        moves_probabilities, value = self.net(board)
+        moves_probabilities = moves_probabilities.view(-1).detach().numpy()
+        return moves_probabilities, value.item()
+
+    def save_checkpoint(self, folder, filename):
+        filepath = os.path.join(folder, filename)
+        torch.save({
+            'state_dict': self.net.state_dict(),
+        }, filepath)
+
+    def load_checkpoint(self, folder, filename):
+        filepath = os.path.join(folder, filename)
+        checkpoint = torch.load(filepath)
+        self.net.load_state_dict(checkpoint['state_dict'])
+
+    def __reduce__(self):
+        return self.__class__, (self.game, self.length, self.filename)

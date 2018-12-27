@@ -2,8 +2,6 @@ from .minimax import alpha_beta
 import random
 from collections import OrderedDict
 
-random.seed(45)
-
 
 class MinMaxAgent:
     def __init__(self, name, depth):

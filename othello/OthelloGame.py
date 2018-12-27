@@ -8,7 +8,7 @@ class OthelloGame:
     def __init__(self, length, height):
         self.length = length
         self.height = height
-        self.action_size = length * height + 1
+        self.action_size = length * height
         self.board = np.zeros((length, height), dtype=int)
         self.player_turn = 1
         self.board[length // 2, height // 2] = self.board[length // 2 - 1, height // 2 - 1] = 1
@@ -42,11 +42,10 @@ class OthelloGame:
 
 class StateOthello(GenericState):
 
-    def is_terminal(self, action):
-        return self.is_over()
-
-    def evaluate(self):
-        return self.board.sum() * self.player_turn
+    def __init__(self, board, player_turn):
+        self.player_turn = player_turn
+        super(StateOthello, self).__init__(board, player_turn)
+        self.over = not (len(self.action_possible))
 
     def is_draw(self):
         if self.is_over():
@@ -68,39 +67,39 @@ class StateOthello(GenericState):
         for action in self.action_possible:
             yield action, self.take_action(action)[0]
 
-    def __init__(self, board, player_turn, passed=False):
-        self.player_turn = player_turn
-        super(StateOthello, self).__init__(board, player_turn)
-        self.passed = passed
+    def is_terminal(self, action):
+        return self.is_over()
+
+    def evaluate(self):
+        return self.board.sum() * self.player_turn
 
     def take_action(self, action):
         # assert action in self.action_possible
-        if action == self.height * self.length:
-            new_board = self.board
-            next_state = StateOthello(new_board, -1 * self.player_turn, passed=True)
-        else:
-            new_board = np.array(self.board)
-            j = action % self.length
-            i = action // self.height
-            new_board[i, j] = self.player_turn
-            idx = self._horizontal(i, j) + self._vertical(i, j) + self._diag_principal(i, j) + self._diag_reverse(i, j)
-            for x in idx:
-                new_board[x] = self.player_turn
-            next_state = StateOthello(new_board, -1 * self.player_turn)
+        new_board = np.array(self.board)
+        j = action % self.length
+        i = action // self.height
+        new_board[i, j] = self.player_turn
+        idx = self._horizontal(i, j) + self._vertical(i, j) + self._diag_principal(i, j) + self._diag_reverse(i, j)
+        for x in idx:
+            new_board[x] = self.player_turn
+        next_state = StateOthello(new_board, -1 * self.player_turn)
+        if next_state.over:
+            next_state = StateOthello(new_board, self.player_turn)
+            if next_state.over:
+                next_state = StateOthello(new_board, -1 * self.player_turn)
         value = 0
         done = 0
         if next_state.is_over():
             done = 1
-            mean = np.mean(next_state.board) * self.player_turn * -1
-            if mean == 0:
+            res = np.sum(next_state.board) * self.player_turn * -1
+            if res == 0:
                 value = 0
             else:
-                value = 2 * int(mean > 0) - 1
+                value = 2 * int(res > 0) - 1
         return next_state, value, done
 
     def is_over(self):
-        return 0 not in self.board or (self.action_possible[0] == self.length * self.height
-                                       and self.passed)
+        return self.over or 0 not in self.board
 
     def get_symmetries(self, pi):
         return [(self.to_model(), pi)]
@@ -108,8 +107,6 @@ class StateOthello(GenericState):
     def _get_actions(self):
         act = np.argwhere(self.board == 0)
         zz = [(x, y) for x, y in act if self._is_valid(x, y)]
-        if not zz:
-            return np.array([self.height * self.length])
         return np.array([y + self.length * x for x, y in zz])
 
     def _is_valid(self, x, y):
@@ -238,8 +235,8 @@ class StateOthello(GenericState):
         return {1: 'X', -1: 'O', 0: '-'}
 
     def __str__(self):
-        return '\n'.join([''.join([self.corresp[y] for y in x]) for x in self.board.tolist()]) +\
-               str(self.player_turn)
+        return '\n'.join([''.join([self.corresp[y] for y in x]) for x in self.board.tolist()])\
+               + str(self.player_turn)
 
     def __repr__(self):
         return str(self.board)
@@ -248,7 +245,18 @@ class StateOthello(GenericState):
 if __name__ == "__main__":
     def main():
         import random as rd
-
+        # zz = 'X----X--XOOOOOOOXOXXXOOXXXOXOXOXXOXXXXXXXOOOOXXXX-O-OOXXX---OXXX'
+        # board = list()
+        # for x in range(8):
+        #     temp = list()
+        #     for y in range(8):
+        #         temp.append({'X': 1, 'O': -1, '-': 0}[zz[x * 8 + y]])
+        #     board.append(temp)
+        # board = np.array(board)
+        # state = StateOthello(board, -1)
+        # print(state)
+        # print(state.over)
+        # print(state.action_possible)
         N = 8
         board = np.zeros(shape=(N, N))
         board[N // 2, N // 2] = board[N // 2 - 1, N // 2 - 1] = 1

@@ -8,7 +8,7 @@ from Memory import Memory
 # from connect4 import num_game_tournament, turn_until_greedy, memory_size, threshold
 # from connect4.Connect4Game import Connect4Game as Game
 # from connect4.Connect4Game import StateConnect4 as State
-from models import WrapperNet
+from models import WrapperNet, WrapperNetDummy
 from tournament import play_game
 from utils import load_pickle, save_pickle, extract_digit
 
@@ -41,6 +41,8 @@ def train():
         memory = Memory(memory_size)
     env = Game(height, length)
     action_size = env.action_size
+    # model_contender = WrapperNetDummy(env, lg.logger_model)
+    # model_champion = WrapperNetDummy(env, lg.logger_model)
     model_contender = WrapperNet(env, lg.logger_model)
     model_champion = WrapperNet(env, lg.logger_model)
     try:
